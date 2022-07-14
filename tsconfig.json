@@ -1,10 +1,12 @@
 {
   "ts-node": {
     "compilerOptions": {
+      "baseUrl": "src",
       "module": "commonjs"
     }
   },
   "compilerOptions": {
+    "baseUrl": "src",
     "esModuleInterop": true,
     "lib": [
       "ESNext"
