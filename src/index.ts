@@ -1,7 +1,7 @@
-import { Client, Intents } from 'discord.js';
-import { token } from '../config.json';
+import { Client, Collection, Intents } from 'discord.js';
+import { token, guildId } from '../config.json';
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+export const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 client.once('ready', () => {
   console.log('Ready!');

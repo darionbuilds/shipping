@@ -84,5 +84,3 @@ export default function getShip(name: string): Promise<Ship> {
       reject(new Error('Ship not found'));
     });
 };
-
-getShip('Mercury');
