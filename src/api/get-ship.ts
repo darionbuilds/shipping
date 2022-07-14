@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Hardpoints, IShip } from 'types';
+import { Hardpoints, IShip } from './types';
 import { Urls, Versions } from './constants';
 import { scapiApiKey } from '../../config.json';
 

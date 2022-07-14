@@ -1,17 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Client, Intents, Collection } from 'discord.js';
-import { Command } from 'types';
+import { CommandClient } from './types';
 import { token } from '../config.json';
-
-class CommandClient extends Client {
-  public commands: Collection<string, Command>;
-
-  constructor() {
-    super({ intents: [Intents.FLAGS.GUILDS] });
-    this.commands = new Collection();
-  }
-}
 
 const client = new CommandClient();
 

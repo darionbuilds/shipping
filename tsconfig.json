@@ -6,7 +6,6 @@
     }
   },
   "compilerOptions": {
-    "baseUrl": "src",
     "esModuleInterop": true,
     "lib": [
       "ESNext"
@@ -22,8 +21,7 @@
     ]
   },
   "include": [
-    "/**/*.ts",
-    "src/.d.ts"
+    "/**/*.ts"
   ],
   "exclude": [
     "node_modules"
