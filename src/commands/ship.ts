@@ -18,14 +18,14 @@ export default {
   async execute(interaction: CommandInteraction) {
     getShip(interaction.options.getString('name'))
       .then((ship) => {
-        if (ship.name) {
-          interaction.reply(ship.name);
-        } else {
-          throw new Error('No ship found with this name!');
+        try {
+          interaction.reply(ship);
+        } catch {
+          interaction.reply('Something went wrong. (Internal)');
         }
       })
       .catch((error) => {
-        interaction.reply(error.message);
+        interaction.reply({ content: error.message, ephemeral: true });
       });
   },
 };
