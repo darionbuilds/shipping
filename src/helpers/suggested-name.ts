@@ -8,6 +8,7 @@ export default function suggestedName(
   switch (statusCode) {
     case 0:
       const capitalizedName = name
+        .toLowerCase()
         .split(' ')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
