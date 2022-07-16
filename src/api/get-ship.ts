@@ -1,31 +1,70 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { wikiStatus } from './types';
 import { Urls, Versions } from './constants';
+import suggestedName from '../helpers/suggested-name';
 
 class Ship {
   [key: string]: string;
 }
 
-export default function getShip(name: string): Promise<Ship> {
-  const ship: Ship = new Ship();
+export default function getShip(name: string | null): Promise<Ship | Error> {
+  if (!name) {
+    return Promise.reject(
+      new Error('Unable to find or suggest a ship with this name')
+    );
+  }
+
+  let shipDataRaw: string | undefined;
+  let statusCode: wikiStatus;
+
   return new Promise((resolve, reject) => {
+    console.log('Name input:', name);
     axios
       .get(
         `${Urls.SC_TOOLS_API_URL}/${Versions.SC_TOOLS_API_VERSION}${name}${Versions.SC_TOOLS_API_TAIL}`
       )
       .then((response) => {
         const $ = cheerio.load(response.data);
-        const shipDataRaw = $('#wpTextbox1').text();
+        shipDataRaw = $('#wpTextbox1').text();
 
         if (!shipDataRaw || !shipDataRaw.length) {
-          throw new Error(`No ships named ${name} were found.`);
+          statusCode = wikiStatus.NotFound;
+
+          console.log('Retrying with capitalization...');
+          resolve(getShip(suggestedName(name, statusCode, shipDataRaw)));
         }
 
         const shipDataLines = shipDataRaw.split('| ');
-        const endingLine = shipDataLines.findIndex((line) =>
-          line.includes('}}\n\n')
+
+        if (shipDataRaw.includes('#REDIRECT')) {
+          statusCode = wikiStatus.Redirect;
+
+          console.log('Retrying due to redirect...');
+          resolve(getShip(suggestedName(name, statusCode, shipDataRaw)));
+        }
+
+        if (shipDataLines[0].includes('{{Disambig}}')) {
+          statusCode = wikiStatus.Ambigous;
+
+          console.log('Retrying due to ambiguous name...');
+          resolve(getShip(suggestedName(name, statusCode, shipDataRaw)));
+        }
+
+        const ship: Ship = new Ship();
+
+        const startInfoBox: number = shipDataLines.findIndex((line) =>
+          line.includes('{{Infobox vehicle')
         );
-        const infoBox = shipDataLines.slice(1, endingLine);
+
+        const endingLine: number = shipDataLines.findIndex(
+          (line, currentIndex) =>
+            line.includes('}}\n\n') && currentIndex > startInfoBox
+        );
+        console.log('Ending line:', endingLine);
+
+        const infoBox: string[] = shipDataLines.slice(1, endingLine);
+        console.log('Infobox lines:', infoBox);
         infoBox.push(shipDataLines[endingLine].split('}}\n\n')[0]);
 
         infoBox.forEach((line) => {

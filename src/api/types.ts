@@ -1,3 +1,9 @@
+export enum wikiStatus {
+  NotFound,
+  Ambigous,
+  Redirect,
+}
+
 export interface Component {
   details: string;
   manufacturer: string;

@@ -18,14 +18,20 @@ export default {
   async execute(interaction: CommandInteraction) {
     getShip(interaction.options.getString('name'))
       .then((ship) => {
-        try {
-          interaction.reply(ship);
-        } catch {
-          interaction.reply('Something went wrong. (Internal)');
+        if (!ship.name) {
+          throw new Error(
+            "If trying a more specific name doesn't work, check your spelling and try again."
+          );
+        } else {
+          interaction.reply(ship.name);
         }
       })
       .catch((error) => {
-        interaction.reply({ content: error.message, ephemeral: true });
+        console.error(error);
+        interaction.reply({
+          content: 'Something went wrong! Try with a different name.',
+          ephemeral: true,
+        });
       });
   },
 };

@@ -2,13 +2,14 @@
   "version": "0.0.2",
   "name": "shipping",
   "main": "src/index.js",
-  "devDependencies": {
-    "@types/node": "^18.0.3",
-    "bun-types": "^0.0.83"
-  },
   "scripts": {
     "start": "ts-node src/index.ts",
     "commands": "ts-node src/commands/deploy.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.3",
+    "bun-types": "^0.0.83",
+    "ts-node-dev": "^2.0.0"
   },
   "dependencies": {
     "@discordjs/builders": "^0.15.0",
@@ -17,6 +18,6 @@
     "cheerio": "^1.0.0-rc.12",
     "discord-api-types": "^0.36.1",
     "discord.js": "^13.8.1",
-    "ts-node": "^10.8.2"
+    "typescript": "^4.7.4"
   }
 }
