@@ -3,7 +3,7 @@
   "name": "shipping",
   "main": "src/index.js",
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "ts-node-dev src/index.ts",
     "commands": "ts-node src/commands/deploy.ts"
   },
   "devDependencies": {

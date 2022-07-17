@@ -3,6 +3,10 @@ import * as path from 'path';
 import { Collection, Intents, Client } from 'discord.js';
 import { token } from '../config.json';
 import { Command } from './types';
+import { get } from 'http';
+import ship from './commands/ship';
+import getShip, { Ship } from './api/get-ship';
+import shipEmbed from './helpers/embed';
 
 class CommandClient extends Client {
   public commands: Collection<string, Command>;
@@ -13,7 +17,7 @@ class CommandClient extends Client {
   }
 }
 
-const client = new CommandClient();
+export const client = new CommandClient();
 
 client.once('ready', () => {
   console.log('Ready!');
@@ -29,7 +33,29 @@ const commandFiles = fs
 commandFiles.forEach((file) => {
   const filePath = path.join(commandsPath, file);
   const command = require(filePath);
-  client.commands.set(command.default.data.name, command.default);
+  if (command.default.data) {
+    client.commands.set(command.default.data.name, command.default);
+  }
+});
+
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isSelectMenu()) {
+    return;
+  }
+
+  getShip(interaction.values[0]).then((shipResponse) => {
+    if (shipResponse instanceof Ship) {
+      interaction.reply('Success!');
+      interaction.channel
+        .send({ embeds: [shipEmbed(shipResponse)] })
+        .then(() => interaction.deleteReply());
+    } else {
+      interaction.reply({
+        content: 'Something went wrong! Try with a different name.',
+        ephemeral: true,
+      });
+    }
+  });
 });
 
 client.on('interactionCreate', async (interaction) => {

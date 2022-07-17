@@ -2,6 +2,7 @@ export enum wikiStatus {
   NotFound,
   Ambigous,
   Redirect,
+  Variants,
 }
 
 export interface Component {

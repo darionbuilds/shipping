@@ -15,7 +15,9 @@ const commandFiles = fs
 commandFiles.forEach((file) => {
   const filePath = path.join(commandsPath, file);
   const command = require(filePath);
-  commands.push(command.default.data);
+  if (command.default.data) {
+    commands.push(command.default.data);
+  }
 });
 
 const rest = new REST({ version: '9' }).setToken(token);

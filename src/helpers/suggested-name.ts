@@ -1,10 +1,10 @@
 import { wikiStatus } from '../api/types';
 
-export default function suggestedName(
-  name: string,
+export default function suggestedNames(
   statusCode: wikiStatus,
-  shipDataRaw: string
-): string | null {
+  shipDataRaw: string,
+  name: string
+): string[] | null {
   switch (statusCode) {
     case 0:
       const capitalizedName = name
@@ -14,7 +14,7 @@ export default function suggestedName(
         .join(' ');
 
       if (name !== capitalizedName) {
-        return capitalizedName;
+        return [capitalizedName];
       } else {
         return null;
       }
@@ -28,7 +28,7 @@ export default function suggestedName(
 
         console.log('Suggesting less ambiguous name:', spaceShipName);
 
-        return spaceShipName;
+        return [spaceShipName];
       } else {
         return null;
       }
@@ -36,7 +36,24 @@ export default function suggestedName(
     case 2:
       const redirectName = shipDataRaw.match(/\[\[(.*?)\]\]/)[1];
       console.log('Wiki redirected to suggested page:', redirectName);
-      return redirectName;
+      return [redirectName];
+
+    case 3:
+      const series = name.split(':')[1].split(' ')[0];
+      const seriesMatcher = new RegExp(
+        `====\\s?\\[\\[.*?${series}.*?\\]\\]\\s?====`,
+        'ig'
+      );
+      const variantsRaw = shipDataRaw.matchAll(seriesMatcher);
+
+      const matches: string[] = [];
+      for (const match of variantsRaw) {
+        const name = match[0]
+          .replace(/====\s?\[\[/, '')
+          .replace(/\]\]\s?====/, '');
+        matches.push(name);
+      }
+      return matches;
 
     default:
       return null;

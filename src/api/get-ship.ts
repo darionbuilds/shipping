@@ -2,14 +2,14 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { wikiStatus } from './types';
 import { Urls, Versions } from './constants';
-import suggestedName from '../helpers/suggested-name';
+import suggestedNames from '../helpers/suggested-name';
 import getShipImageUrl from './get-ship-image';
 
 export class Ship {
   [key: string]: string;
 }
 
-export default function getShip(name: string | null): Promise<Ship | Error> {
+export default function getShip(name: string | null): Promise<Ship | string[]> {
   if (!name) {
     return Promise.reject(
       new Error('Unable to find or suggest a ship with this name')
@@ -26,6 +26,7 @@ export default function getShip(name: string | null): Promise<Ship | Error> {
         `${Urls.SC_TOOLS_API_URL}/${Versions.SC_TOOLS_API_VERSION}${name}${Versions.SC_TOOLS_API_TAIL}`
       )
       .then((response) => {
+        // TODO: modularize the string parsing into its own file and return status
         const $ = cheerio.load(response.data);
         shipDataRaw = $('#wpTextbox1').text();
 
@@ -33,7 +34,7 @@ export default function getShip(name: string | null): Promise<Ship | Error> {
           statusCode = wikiStatus.NotFound;
 
           console.log('Retrying with capitalization...');
-          resolve(getShip(suggestedName(name, statusCode, shipDataRaw)));
+          resolve(getShip(suggestedNames(statusCode, shipDataRaw, name)[0]));
         }
 
         const shipDataLines = shipDataRaw.split('| ');
@@ -42,14 +43,21 @@ export default function getShip(name: string | null): Promise<Ship | Error> {
           statusCode = wikiStatus.Redirect;
 
           console.log('Retrying due to redirect...');
-          resolve(getShip(suggestedName(name, statusCode, shipDataRaw)));
+          resolve(getShip(suggestedNames(statusCode, shipDataRaw, name)[0]));
+        }
+
+        if (shipDataRaw.includes('Series Variants')) {
+          statusCode = wikiStatus.Variants;
+
+          console.log('Retrying due to series name...');
+          resolve(suggestedNames(statusCode, shipDataRaw, name));
         }
 
         if (shipDataLines[0].includes('{{Disambig}}')) {
           statusCode = wikiStatus.Ambigous;
 
           console.log('Retrying due to ambiguous name...');
-          resolve(getShip(suggestedName(name, statusCode, shipDataRaw)));
+          resolve(getShip(suggestedNames(statusCode, shipDataRaw, name)[0]));
         }
 
         const ship: Ship = new Ship();
@@ -71,8 +79,9 @@ export default function getShip(name: string | null): Promise<Ship | Error> {
         infoBox.forEach((line) => {
           let [key, value] = line.split(' = ').map((item) => item.trim());
           if (value) {
-            if (!isNaN(Number(value))) {
-              value = Number(value).toLocaleString();
+            const valueToNumber = Number(value);
+            if (!isNaN(valueToNumber)) {
+              value = valueToNumber.toLocaleString();
             }
             ship[key] = value;
           }
@@ -86,7 +95,6 @@ export default function getShip(name: string | null): Promise<Ship | Error> {
         getShipImageUrl(ship.name)
           .then((imageUrl) => {
             ship.image = `${Urls.SC_TOOLS_API_URL}${imageUrl}`;
-            console.log(ship);
             resolve(ship);
           })
           .catch((error) => {
